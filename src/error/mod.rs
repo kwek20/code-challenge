@@ -12,6 +12,9 @@ pub enum Error {
 
     #[error("Csv Error: {0}")]
     Csv(String),
+
+    #[error("Failed to parse {0} from {1}")]
+    Parse(&'static str, String),
 }
 
 impl From<csv::Error> for Error {

@@ -10,7 +10,10 @@ async fn main() {
     let args: Vec<String> = std::env::args().collect();
 
     match true_main(args).await {
-        Ok(csv) => {}
+        Ok(system) => {
+            let csv = system.to_output().await;
+
+        }
         Err(e) => {}
     }
 }
