@@ -4,7 +4,7 @@ use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 use tokio::sync::Semaphore;
 
-use crate::{Result, AccountError, AccountResult};
+use crate::{AccountError, AccountResult, Result};
 
 fn semaphore() -> Arc<Semaphore> {
     Arc::new(Semaphore::new(1))
@@ -22,7 +22,7 @@ pub struct Account {
     locked: bool,
     /// Prevent concurrent writing
     #[serde(skip, default = "semaphore")]
-    lock: Arc<Semaphore>
+    lock: Arc<Semaphore>,
 }
 
 impl PartialEq for Account {
@@ -38,7 +38,7 @@ impl Eq for Account {}
 
 impl Default for Account {
     fn default() -> Self {
-        Self { 
+        Self {
             lock: semaphore(),
             available: Decimal::new(0, 4),
             held: Decimal::new(0, 4),
@@ -61,7 +61,7 @@ impl Account {
     pub fn assert_modify(&self) -> AccountResult<()> {
         match self.may_modify() {
             true => Ok(()),
-            false => Err(AccountError::ModificationsLocked)
+            false => Err(AccountError::ModificationsLocked),
         }
     }
 
@@ -110,7 +110,7 @@ impl Account {
 
         self.available -= amount;
         self.total -= amount;
-        
+
         Ok(true)
     }
 
@@ -143,7 +143,7 @@ impl Account {
 
         self.total -= amount;
         self.held -= amount;
-        
+
         Ok(())
     }
 }

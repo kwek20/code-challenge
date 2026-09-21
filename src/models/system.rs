@@ -35,7 +35,7 @@ impl System {
             let mut reader = reader;
             let mut iterator = reader.deserialize();
 
-            while let Some(s)  = iterator.next() {
+            while let Some(s) = iterator.next() {
                 if let Ok(record) = s {
                     tracing::error!("record: {:?}", record);
                     if tx.send(record).await.is_err() {

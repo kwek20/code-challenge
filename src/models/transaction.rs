@@ -11,7 +11,7 @@ pub struct ClientOutput {
     pub available: Decimal,
     pub held: Decimal,
     pub total: Decimal,
-    pub locked: bool
+    pub locked: bool,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Eq)]
@@ -19,14 +19,14 @@ pub struct TransactionRecord {
     pub r#type: Transaction,
     pub client: u16,
     pub tx: u32,
-    pub amount: Decimal
+    pub amount: Decimal,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Eq)]
 pub struct UserTransaction {
     pub transaction_type: Transaction,
     pub tx: u32,
-    pub amount: Decimal
+    pub amount: Decimal,
 }
 
 impl From<TransactionRecord> for UserTransaction {

@@ -9,5 +9,5 @@ pub enum ClientError {
     TransactionNotFound(u32),
 
     #[error("Transaction {0} was not disputed")]
-    NotDisputed(u32)
+    NotDisputed(u32),
 }

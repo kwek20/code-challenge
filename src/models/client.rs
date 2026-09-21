@@ -3,7 +3,9 @@ use std::sync::Arc;
 use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
 
-use crate::{Account, AccountError, ClientError, ClientOutput, Result, Transaction, TransactionRecord, UserTransaction};
+use crate::{
+    Account, AccountError, ClientError, ClientOutput, Result, Transaction, TransactionRecord, UserTransaction,
+};
 
 pub type ClientId = u16;
 
@@ -16,13 +18,12 @@ pub struct Client {
     client_id: ClientId,
     account: Account,
     #[serde(skip, default = "transactions")]
-    transactions: Arc<RwLock<Vec<UserTransaction>>>
+    transactions: Arc<RwLock<Vec<UserTransaction>>>,
 }
 
 impl PartialEq for Client {
     fn eq(&self, other: &Self) -> bool {
-        self.client_id == other.client_id
-            && self.account == other.account
+        self.client_id == other.client_id && self.account == other.account
     }
 }
 
@@ -33,7 +34,7 @@ impl Client {
         Self {
             client_id,
             account: Account::new(),
-            transactions: transactions()
+            transactions: transactions(),
         }
     }
 
@@ -61,7 +62,11 @@ impl Client {
         };
 
         if let Err(e) = &result {
-            tracing::error!("{}: Failed to process transaction {} due to {e}", record.client, record.tx)
+            tracing::error!(
+                "{}: Failed to process transaction {} due to {e}",
+                record.client,
+                record.tx
+            )
         } else {
             self.transactions.write().await.push(record.into());
         }
@@ -75,7 +80,7 @@ impl Client {
 
     pub async fn process_withdrawal(&mut self, record: &TransactionRecord) -> Result<()> {
         if !self.account.remove(record.amount).await? {
-            return Err(AccountError::WithdrawalFailed)?
+            return Err(AccountError::WithdrawalFailed)?;
         }
 
         Ok(())
@@ -87,7 +92,7 @@ impl Client {
 
         match disputed_tx {
             None => Err(ClientError::TransactionNotFound(dispute))?,
-            Some(t) => self.account.hold(t.amount).await
+            Some(t) => self.account.hold(t.amount).await,
         }
     }
 
@@ -96,12 +101,12 @@ impl Client {
         if !self.is_disputed(dispute).await {
             return Err(ClientError::NotDisputed(dispute))?;
         }
-        
+
         let disputed_tx = self.get_transaction(record.tx).await;
-    
+
         match disputed_tx {
             None => Err(ClientError::TransactionNotFound(dispute))?,
-            Some(t) => self.account.make_available(t.amount).await
+            Some(t) => self.account.make_available(t.amount).await,
         }
     }
 
@@ -110,18 +115,18 @@ impl Client {
         if !self.is_disputed(dispute).await {
             return Err(ClientError::NotDisputed(dispute))?;
         }
-        
+
         let disputed_tx = self.get_transaction(record.tx).await;
-    
+
         match disputed_tx {
             None => Err(ClientError::TransactionNotFound(dispute))?,
-            Some(t) => self.account.chargeback(t.amount).await?
+            Some(t) => self.account.chargeback(t.amount).await?,
         }
 
         // Lock the account after a chargeback
         self.account.lock().await;
 
-       Ok(())
+        Ok(())
     }
 
     async fn get_transaction(&self, tx_id: u32) -> Option<UserTransaction> {
@@ -130,7 +135,7 @@ impl Client {
     }
 
     /// Check if a certain transaciton id is currently disputed
-    async fn is_disputed(&self, tx_id: u32) ->  bool {
+    async fn is_disputed(&self, tx_id: u32) -> bool {
         let mut disputed = false;
         self.transactions.read().await.iter().for_each(|t| {
             if t.tx != tx_id {
@@ -140,7 +145,7 @@ impl Client {
             match t.transaction_type {
                 Transaction::Dispute => disputed = true,
                 Transaction::Resolve => disputed = false,
-                _ => {}, // Ignore the rest
+                _ => {} // Ignore the rest
             };
         });
 
