@@ -1,4 +1,4 @@
-use std::{fs::TryLockError::Error, sync::Arc};
+use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
@@ -51,17 +51,19 @@ impl Client {
         }
     }
 
-    pub async fn process(&mut self, record: &TransactionRecord) -> Result<()> {
+    pub async fn process(&mut self, record: TransactionRecord) -> Result<()> {
         let result = match &record.r#type {
-            Transaction::Deposit => self.process_deposit(record).await,
-            Transaction::Withdrawal => self.process_withdrawal(record).await,
-            Transaction::Dispute => self.process_dispute(record).await,
-            Transaction::Resolve => self.process_resolve(record).await,
-            Transaction::Chargeback => self.process_chargeback(record).await,
+            Transaction::Deposit => self.process_deposit(&record).await,
+            Transaction::Withdrawal => self.process_withdrawal(&record).await,
+            Transaction::Dispute => self.process_dispute(&record).await,
+            Transaction::Resolve => self.process_resolve(&record).await,
+            Transaction::Chargeback => self.process_chargeback(&record).await,
         };
 
         if let Err(e) = &result {
             tracing::error!("{}: Failed to process transaction {} due to {e}", record.client, record.tx)
+        } else {
+            self.transactions.write().await.push(record.into());
         }
 
         Ok(())

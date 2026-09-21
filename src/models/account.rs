@@ -136,12 +136,12 @@ impl Account {
         Ok(())
     }
 
-    /// Remove an amount form the user, which were initially held back
+    /// Remove an amount from the user, which were initially held back
     pub async fn chargeback(&mut self, amount: Decimal) -> Result<()> {
         let _ = self.lock.acquire().await;
         self.assert_modify()?;
 
-        self.available -= amount;
+        self.total -= amount;
         self.held -= amount;
         
         Ok(())

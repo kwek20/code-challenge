@@ -29,6 +29,16 @@ pub struct UserTransaction {
     pub amount: Decimal
 }
 
+impl From<TransactionRecord> for UserTransaction {
+    fn from(record: TransactionRecord) -> Self {
+        Self {
+            transaction_type: record.r#type,
+            tx: record.tx,
+            amount: record.amount,
+        }
+    }
+}
+
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum Transaction {

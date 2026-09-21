@@ -55,7 +55,7 @@ impl System {
 
     pub async fn process(&mut self, record: TransactionRecord) -> Result<()> {
         let client = self.get_or_create_client(record.client);
-        client.process(&record).await?;
+        client.process(record).await?;
         Ok(())
     }
 
