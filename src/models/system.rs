@@ -35,11 +35,13 @@ impl System {
             let mut reader = reader;
             let mut iterator = reader.deserialize();
 
-            if let Some(Ok(record)) = iterator.next() {
-                tracing::error!("record: {:?}", record);
-                if tx.send(record).await.is_err() {
-                    // We closed somehow, end execution
-                    return;
+            while let Some(s)  = iterator.next() {
+                if let Ok(record) = s {
+                    tracing::error!("record: {:?}", record);
+                    if tx.send(record).await.is_err() {
+                        // We closed somehow, end execution
+                        return;
+                    }
                 }
             }
         });

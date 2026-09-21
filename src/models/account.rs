@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 use tokio::sync::Semaphore;
 
@@ -12,11 +13,11 @@ fn semaphore() -> Arc<Semaphore> {
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct Account {
     /// This should be equal to the total - held amounts
-    available: u16,
+    available: Decimal,
     /// The total funds that are held for dispute
-    held: u16,
+    held: Decimal,
     /// The total funds that are available or held
-    total: u16,
+    total: Decimal,
     /// Whether the account is locked
     locked: bool,
     /// Prevent concurrent writing
@@ -39,9 +40,9 @@ impl Default for Account {
     fn default() -> Self {
         Self { 
             lock: semaphore(),
-            available: 0,
-            held: 0,
-            total: 0,
+            available: Decimal::new(0, 6),
+            held: Decimal::new(0, 6),
+            total: Decimal::new(0, 6),
             locked: false,
         }
     }
@@ -54,7 +55,7 @@ impl Account {
 
     /// Checks if the account balances can be modified
     pub fn may_modify(&self) -> bool {
-        self.locked
+        !self.locked
     }
 
     pub fn assert_modify(&self) -> AccountResult<()> {
@@ -74,23 +75,23 @@ impl Account {
         self.locked = false;
     }
 
-    pub fn available(&self) -> u16 {
+    pub fn available(&self) -> Decimal {
         self.available
     }
 
-    pub fn avaiable(&self) -> u16 {
+    pub fn avaiable(&self) -> Decimal {
         self.available()
     }
 
-    pub fn held(&self) -> u16 {
+    pub fn held(&self) -> Decimal {
         self.held
     }
 
-    pub fn total(&self) -> u16 {
+    pub fn total(&self) -> Decimal {
         self.total
     }
 
-    pub async fn add(&mut self, amount: u16) -> Result<()> {
+    pub async fn add(&mut self, amount: Decimal) -> Result<()> {
         let _ = self.lock.acquire().await;
         self.assert_modify()?;
 
@@ -100,7 +101,7 @@ impl Account {
         Ok(())
     }
 
-    pub async fn remove(&mut self, amount: u16) -> Result<bool> {
+    pub async fn remove(&mut self, amount: Decimal) -> Result<bool> {
         let _ = self.lock.acquire().await;
 
         self.assert_modify()?;

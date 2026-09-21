@@ -64,7 +64,7 @@ impl Client {
             tracing::error!("{}: Failed to process transaction {} due to {e}", record.client, record.tx)
         }
 
-        result
+        Ok(())
     }
 
     pub async fn process_deposit(&mut self, record: &TransactionRecord) -> Result<()> {

@@ -1,5 +1,6 @@
 use std::str::FromStr;
 
+use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
 use crate::Error;
@@ -7,9 +8,9 @@ use crate::Error;
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Eq)]
 pub struct ClientOutput {
     pub client: u16,
-    pub available: u16,
-    pub held: u16,
-    pub total: u16,
+    pub available: Decimal,
+    pub held: Decimal,
+    pub total: Decimal,
     pub locked: bool
 }
 
@@ -18,14 +19,14 @@ pub struct TransactionRecord {
     pub r#type: Transaction,
     pub client: u16,
     pub tx: u16,
-    pub amount: u16
+    pub amount: Decimal
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Eq)]
 pub struct UserTransaction {
     pub transaction_type: Transaction,
     pub tx: u16,
-    pub amount: u16
+    pub amount: Decimal
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Eq)]

@@ -5,6 +5,7 @@ pub mod models;
 use std::{fs::File, path::PathBuf};
 
 pub use constants::*;
+use csv::Trim;
 pub use error::*;
 pub use models::*;
 
@@ -26,7 +27,10 @@ pub async fn true_main(args: Vec<String>) -> Result<System> {
 
     tracing::error!("Reading file from {path:?}: {}", path.exists());
 
-    let reader = csv::Reader::from_path(path)?;
+    let mut reader_builder = csv::ReaderBuilder::new();
+    reader_builder.trim(Trim::All);
+    reader_builder.has_headers(true);
+    let reader = reader_builder.from_path(path)?;
 
     let mut system = System::new();
 
