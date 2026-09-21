@@ -80,7 +80,7 @@ impl Client {
 
     pub async fn process_withdrawal(&mut self, record: &TransactionRecord) -> Result<()> {
         if !self.account.remove(record.amount).await? {
-            return Err(AccountError::WithdrawalFailed)?;
+            Err(AccountError::WithdrawalFailed)?;
         }
 
         Ok(())
@@ -99,7 +99,7 @@ impl Client {
     pub async fn process_resolve(&mut self, record: &TransactionRecord) -> Result<()> {
         let dispute = record.tx;
         if !self.is_disputed(dispute).await {
-            return Err(ClientError::NotDisputed(dispute))?;
+            Err(ClientError::NotDisputed(dispute))?;
         }
 
         let disputed_tx = self.get_transaction(record.tx).await;
@@ -113,7 +113,7 @@ impl Client {
     pub async fn process_chargeback(&mut self, record: &TransactionRecord) -> Result<()> {
         let dispute = record.tx;
         if !self.is_disputed(dispute).await {
-            return Err(ClientError::NotDisputed(dispute))?;
+            Err(ClientError::NotDisputed(dispute))?;
         }
 
         let disputed_tx = self.get_transaction(record.tx).await;

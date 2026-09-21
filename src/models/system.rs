@@ -9,6 +9,12 @@ pub struct System {
     clients: HashMap<ClientId, Client>,
 }
 
+impl Default for System {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl System {
     pub fn new() -> Self {
         Self {
@@ -35,9 +41,11 @@ impl System {
             let mut reader = reader;
             let mut iterator = reader.deserialize();
 
-            while let Some(s) = iterator.next() {
+            // Allow manual flattening for readability and type inference on iterator
+            #[allow(clippy::manual_flatten)]
+            for s in &mut iterator {
                 if let Ok(record) = s {
-                    tracing::error!("record: {:?}", record);
+                    tracing::error!("{:?}", record);
                     if tx.send(record).await.is_err() {
                         // We closed somehow, end execution
                         return;
