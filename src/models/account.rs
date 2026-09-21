@@ -79,10 +79,6 @@ impl Account {
         self.available
     }
 
-    pub fn avaiable(&self) -> Decimal {
-        self.available()
-    }
-
     pub fn held(&self) -> Decimal {
         self.held
     }
@@ -91,6 +87,7 @@ impl Account {
         self.total
     }
 
+    /// Add funds to the account
     pub async fn add(&mut self, amount: Decimal) -> Result<()> {
         let _ = self.lock.acquire().await;
         self.assert_modify()?;
@@ -101,6 +98,7 @@ impl Account {
         Ok(())
     }
 
+    /// Remove funds from the account
     pub async fn remove(&mut self, amount: Decimal) -> Result<bool> {
         let _ = self.lock.acquire().await;
 
@@ -114,5 +112,38 @@ impl Account {
         self.total -= amount;
         
         Ok(true)
+    }
+
+    /// Hold a certain amount of funds
+    pub async fn hold(&mut self, amount: Decimal) -> Result<()> {
+        let _ = self.lock.acquire().await;
+        self.assert_modify()?;
+
+        self.available -= amount;
+        self.held += amount;
+
+        Ok(())
+    }
+
+    /// Make a certain amount of held funds available again
+    pub async fn make_available(&mut self, amount: Decimal) -> Result<()> {
+        let _ = self.lock.acquire().await;
+        self.assert_modify()?;
+
+        self.available += amount;
+        self.held -= amount;
+
+        Ok(())
+    }
+
+    /// Remove an amount form the user, which were initially held back
+    pub async fn chargeback(&mut self, amount: Decimal) -> Result<()> {
+        let _ = self.lock.acquire().await;
+        self.assert_modify()?;
+
+        self.available -= amount;
+        self.held -= amount;
+        
+        Ok(())
     }
 }

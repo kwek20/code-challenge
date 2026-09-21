@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{fs::TryLockError::Error, sync::Arc};
 
 use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
@@ -47,7 +47,7 @@ impl Client {
             available: self.account.available(),
             held: self.account.held(),
             total: self.account.total(),
-            locked: self.account.may_modify(),
+            locked: !self.account.may_modify(),
         }
     }
 
@@ -81,26 +81,67 @@ impl Client {
 
     pub async fn process_dispute(&mut self, record: &TransactionRecord) -> Result<()> {
         let dispute = record.tx;
-        let disputed_tx = {
-            let lock = self.transactions.read().await;
-            let disputed_tx = lock.iter().find(|t| t.tx == dispute).cloned();
-            disputed_tx
-        };
+        let disputed_tx = self.get_transaction(record.tx).await;
 
         match disputed_tx {
             None => Err(ClientError::TransactionNotFound(dispute))?,
-            Some(t) => {{
-                Ok(())
-            }}
+            Some(t) => self.account.hold(t.amount).await
         }
     }
 
-    pub async fn process_resolve(&mut self, _record: &TransactionRecord) -> Result<()> {
+    pub async fn process_resolve(&mut self, record: &TransactionRecord) -> Result<()> {
+        let dispute = record.tx;
+        if !self.is_disputed(dispute).await {
+            return Err(ClientError::NotDisputed(dispute))?;
+        }
         
-        Ok(())
+        let disputed_tx = self.get_transaction(record.tx).await;
+    
+        match disputed_tx {
+            None => Err(ClientError::TransactionNotFound(dispute))?,
+            Some(t) => self.account.make_available(t.amount).await
+        }
     }
 
-    pub async fn process_chargeback(&mut self, _record: &TransactionRecord) -> Result<()> {
+    pub async fn process_chargeback(&mut self, record: &TransactionRecord) -> Result<()> {
+        let dispute = record.tx;
+        if !self.is_disputed(dispute).await {
+            return Err(ClientError::NotDisputed(dispute))?;
+        }
+        
+        let disputed_tx = self.get_transaction(record.tx).await;
+    
+        match disputed_tx {
+            None => Err(ClientError::TransactionNotFound(dispute))?,
+            Some(t) => self.account.chargeback(t.amount).await?
+        }
+
+        // Lock the account after a chargeback
+        self.account.lock().await;
+
        Ok(())
+    }
+
+    async fn get_transaction(&self, tx_id: u16) -> Option<UserTransaction> {
+        let lock = self.transactions.read().await;
+        lock.iter().find(|t| t.tx == tx_id).cloned()
+    }
+
+    /// Check if a certain transaciton id is currently disputed
+    async fn is_disputed(&self, tx_id: u16) ->  bool {
+        let mut disputed = false;
+        self.transactions.read().await.iter().for_each(|t| {
+            if t.tx != tx_id {
+                return;
+            }
+
+            match t.transaction_type {
+                Transaction::Dispute => disputed = true,
+                Transaction::Resolve => disputed = false,
+                _ => {}, // Ignore the rest
+            };
+        });
+
+        disputed
     }
 }

@@ -7,4 +7,7 @@ pub type ClientResult<T> = std::result::Result<T, ClientError>;
 pub enum ClientError {
     #[error("Could not find transaction by id of {0}")]
     TransactionNotFound(u16),
+
+    #[error("Transaction {0} was not disputed")]
+    NotDisputed(u16)
 }
