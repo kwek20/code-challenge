@@ -1,5 +1,8 @@
 use thiserror::Error;
 
+mod account_error;
+pub use account_error::*;
+
 // Wrapped result for convienence
 pub type Result<T> = std::result::Result<T, Error>;
 
@@ -15,6 +18,9 @@ pub enum Error {
 
     #[error("Failed to parse {0} from {1}")]
     Parse(&'static str, String),
+
+    #[error("Account error: {0}")]
+    Account(#[from] AccountError),
 }
 
 impl From<csv::Error> for Error {

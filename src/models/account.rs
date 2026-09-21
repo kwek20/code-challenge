@@ -1,6 +1,15 @@
-use serde::{Deserialize, Serialize};
+use std::sync::Arc;
 
-#[derive(Default, Deserialize, Serialize, Debug, Clone, PartialEq, Eq)]
+use serde::{Deserialize, Serialize};
+use tokio::sync::Semaphore;
+
+use crate::{Result, AccountError, AccountResult};
+
+fn semaphore() -> Arc<Semaphore> {
+    Arc::new(Semaphore::new(1))
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct Account {
     /// This should be equal to the total - held amounts
     available: u16,
@@ -9,7 +18,22 @@ pub struct Account {
     /// The total funds that are available or held
     total: u16,
     /// Whether the account is locked
-    locked: bool
+    locked: bool,
+    /// Prevent concurrent writing
+    #[serde(skip, default = "semaphore")]
+    lock: Arc<Semaphore>
+}
+
+impl Default for Account {
+    fn default() -> Self {
+        Self { 
+            lock: semaphore(),
+            available: 0,
+            held: 0,
+            total: 0,
+            locked: false,
+        }
+    }
 }
 
 impl Account {
@@ -22,11 +46,20 @@ impl Account {
         self.locked
     }
 
-    pub fn lock(&mut self) {
+    pub fn assert_modify(&self) -> AccountResult<()> {
+        match self.may_modify() {
+            true => Ok(()),
+            false => Err(AccountError::ModificationsLocked)
+        }
+    }
+
+    pub async fn lock(&mut self) {
+        let _ = self.lock.acquire().await;
         self.locked = true;
     }
 
-    pub fn unlock(&mut self) {
+    pub async fn unlock(&mut self) {
+        let _ = self.lock.acquire().await;
         self.locked = false;
     }
 
@@ -46,12 +79,19 @@ impl Account {
         self.total
     }
 
-    pub fn add(&mut self, amount: u16) {
+    pub async fn add(&mut self, amount: u16) -> Result<()> {
+        let _ = self.lock.acquire().await;
+        self.assert_modify()?;
+
         self.available += amount;
         self.total += amount;
     }
 
-    pub fn remove(&mut self, amount: u16) -> bool {
+    pub async fn remove(&mut self, amount: u16) -> Result<()> {
+        let _ = self.lock.acquire().await;
+
+        self.assert_modify()?;
+
         if self.available < amount {
             return false;
         }
