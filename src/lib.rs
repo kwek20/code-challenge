@@ -2,14 +2,14 @@ pub mod constants;
 pub mod error;
 pub mod models;
 
-use std::path::PathBuf;
+use std::{fs::File, path::PathBuf};
 
 pub use constants::*;
 pub use error::*;
 pub use models::*;
 
 pub async fn true_main(args: Vec<String>) -> Result<System> {
-    let path = match args.get(0) {
+    let path = match args.get(1) {
         Some(name) => {
             let mut path = PathBuf::new();
             path.push(name.clone());
@@ -24,9 +24,11 @@ pub async fn true_main(args: Vec<String>) -> Result<System> {
         None => return Err(Error::MissingArgument("INPUT_FILE".to_string())),
     };
 
+    tracing::error!("Reading file from {path:?}: {}", path.exists());
+
     let reader = csv::Reader::from_path(path)?;
 
-    let system = System::new();
+    let mut system = System::new();
 
     system.ingest(reader).await?;
 

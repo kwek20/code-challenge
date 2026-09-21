@@ -7,4 +7,6 @@ pub type AccountResult<T> = std::result::Result<T, AccountError>;
 pub enum AccountError {
     #[error("Account may not be modified at this time")]
     ModificationsLocked,
+    #[error("Account could not withdraw funds at this time")]
+    WithdrawalFailed,
 }

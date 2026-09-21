@@ -1,25 +1,31 @@
-use std::{collections::HashMap, fs::File};
+use std::{collections::HashMap, fs::File, io::Write};
 
 use csv::Reader;
 
-use crate::{Account, Client, ClientId, Result, TransactionRecord};
+use crate::{Client, ClientId, Result, TransactionRecord};
 
 #[derive(Debug, Clone)]
 pub struct System {
     clients: HashMap<ClientId, Client>,
-    accounts: Vec<Account>,
 }
 
 impl System {
     pub fn new() -> Self {
         Self {
             clients: HashMap::new(),
-            accounts: vec![],
         }
     }
 
-    pub async fn to_output(&self) -> Result<SystemOutput> {
-        
+    pub async fn write(&self, writer: impl Write) -> Result<()> {
+        let mut csv_writer = csv::Writer::from_writer(writer);
+
+        self.clients.values().for_each(|c| {
+            let res = csv_writer.serialize(c.record());
+            if let Err(e) = res {
+                tracing::error!("Failed to write client {} due to {e:?}", c.id())
+            }
+        });
+        Ok(())
     }
 
     pub async fn ingest(&mut self, reader: Reader<File>) -> Result<()> {
@@ -29,8 +35,9 @@ impl System {
             let mut reader = reader;
             let mut iterator = reader.deserialize();
 
-            if let Some(Ok(result)) = iterator.next() {
-                if tx.send(result).await.is_err() {
+            if let Some(Ok(record)) = iterator.next() {
+                tracing::error!("record: {:?}", record);
+                if tx.send(record).await.is_err() {
                     // We closed somehow, end execution
                     return;
                 }

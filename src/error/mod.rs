@@ -1,7 +1,10 @@
 use thiserror::Error;
 
 mod account_error;
+mod client_error;
+
 pub use account_error::*;
+pub use client_error::*;
 
 // Wrapped result for convienence
 pub type Result<T> = std::result::Result<T, Error>;
@@ -21,6 +24,9 @@ pub enum Error {
 
     #[error("Account error: {0}")]
     Account(#[from] AccountError),
+
+    #[error("Client error: {0}")]
+    Client(#[from] ClientError),
 }
 
 impl From<csv::Error> for Error {

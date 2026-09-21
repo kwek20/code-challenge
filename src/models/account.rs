@@ -24,6 +24,17 @@ pub struct Account {
     lock: Arc<Semaphore>
 }
 
+impl PartialEq for Account {
+    fn eq(&self, other: &Self) -> bool {
+        self.available == other.available
+            && self.held == other.held
+            && self.total == other.total
+            && self.locked == other.locked
+    }
+}
+
+impl Eq for Account {}
+
 impl Default for Account {
     fn default() -> Self {
         Self { 
@@ -85,19 +96,22 @@ impl Account {
 
         self.available += amount;
         self.total += amount;
+
+        Ok(())
     }
 
-    pub async fn remove(&mut self, amount: u16) -> Result<()> {
+    pub async fn remove(&mut self, amount: u16) -> Result<bool> {
         let _ = self.lock.acquire().await;
 
         self.assert_modify()?;
 
         if self.available < amount {
-            return false;
+            return Ok(false);
         }
 
         self.available -= amount;
         self.total -= amount;
-        true
+        
+        Ok(true)
     }
 }

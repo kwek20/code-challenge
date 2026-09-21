@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use crate::Error;
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Eq)]
-pub struct SystemOutput {
+pub struct ClientOutput {
     pub client: u16,
     pub available: u16,
     pub held: u16,
@@ -15,8 +15,15 @@ pub struct SystemOutput {
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Eq)]
 pub struct TransactionRecord {
-    pub transaction_type: Transaction,
+    pub r#type: Transaction,
     pub client: u16,
+    pub tx: u16,
+    pub amount: u16
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Eq)]
+pub struct UserTransaction {
+    pub transaction_type: Transaction,
     pub tx: u16,
     pub amount: u16
 }

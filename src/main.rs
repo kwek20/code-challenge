@@ -11,9 +11,13 @@ async fn main() {
 
     match true_main(args).await {
         Ok(system) => {
-            let csv = system.to_output().await;
-
+            let res = system.write(std::io::stdout()).await;
+            if let Err(e) = res {
+                tracing::error!("Failed to write system due to {e:?}")
+            }
         }
-        Err(e) => {}
+        Err(e) => {
+            tracing::error!("Failed to boot due to {e:?}")
+        }
     }
 }
