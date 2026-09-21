@@ -1,0 +1,20 @@
+[package]
+name = "code_challenge"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+thiserror = { version = "2.0" }
+tokio = { version = "1.53", features = ["full"] }
+tracing = { version = "0.1", features = ["std"] }
+tracing-subscriber = { version = "0.3" }
+csv = { version = "1.4" }
+serde = { version = "1.0.215", features = ["derive"] }
+serde_json = { version = "1.0.133" }
+
+# Only used in non-release  build
+dotenvy = { version = "0.15" }
+
+[[bin]]
+name = "code_challenge"
+src = "src/main.rs"
