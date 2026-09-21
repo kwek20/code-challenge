@@ -40,9 +40,9 @@ impl Default for Account {
     fn default() -> Self {
         Self { 
             lock: semaphore(),
-            available: Decimal::new(0, 6),
-            held: Decimal::new(0, 6),
-            total: Decimal::new(0, 6),
+            available: Decimal::new(0, 4),
+            held: Decimal::new(0, 4),
+            total: Decimal::new(0, 4),
             locked: false,
         }
     }

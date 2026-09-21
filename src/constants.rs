@@ -1,4 +1,4 @@
 use std::sync::LazyLock;
 
-pub static INPUT_FILE: LazyLock<String> =
-    LazyLock::new(|| std::env::var("INPUT_FILE").unwrap_or("resources/transactions.csv".to_string()));
+pub static RESOURCE_FOLDER: LazyLock<String> =
+    LazyLock::new(|| std::env::var("RESOURCE_FOLDER").unwrap_or("resources".to_string()));

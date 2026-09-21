@@ -2,7 +2,7 @@ pub mod constants;
 pub mod error;
 pub mod models;
 
-use std::{fs::File, path::PathBuf};
+use std::path::PathBuf;
 
 pub use constants::*;
 use csv::Trim;
@@ -13,6 +13,7 @@ pub async fn true_main(args: Vec<String>) -> Result<System> {
     let path = match args.get(1) {
         Some(name) => {
             let mut path = PathBuf::new();
+            path.push(RESOURCE_FOLDER.clone());
             path.push(name.clone());
             path
         }
