@@ -124,13 +124,13 @@ impl Client {
        Ok(())
     }
 
-    async fn get_transaction(&self, tx_id: u16) -> Option<UserTransaction> {
+    async fn get_transaction(&self, tx_id: u32) -> Option<UserTransaction> {
         let lock = self.transactions.read().await;
         lock.iter().find(|t| t.tx == tx_id).cloned()
     }
 
     /// Check if a certain transaciton id is currently disputed
-    async fn is_disputed(&self, tx_id: u16) ->  bool {
+    async fn is_disputed(&self, tx_id: u32) ->  bool {
         let mut disputed = false;
         self.transactions.read().await.iter().for_each(|t| {
             if t.tx != tx_id {

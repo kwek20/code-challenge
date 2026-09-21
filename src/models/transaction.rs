@@ -18,14 +18,14 @@ pub struct ClientOutput {
 pub struct TransactionRecord {
     pub r#type: Transaction,
     pub client: u16,
-    pub tx: u16,
+    pub tx: u32,
     pub amount: Decimal
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Eq)]
 pub struct UserTransaction {
     pub transaction_type: Transaction,
-    pub tx: u16,
+    pub tx: u32,
     pub amount: Decimal
 }
 
