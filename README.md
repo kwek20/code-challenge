@@ -28,3 +28,7 @@ Resource folder is used when a parameter is passed to the binary
 
 ## Logging
 Due to the requirements of the challenge outputting the result to stdout, we log informative messages to stderr. 
+
+## Testing
+Tests were done by ingesting larger transaction samples and verifying manually, and using a secondary AI, what the output should be.
+Unit tests could specifically be added to the `Account` struct modification functions for improvement, and on the general client  process() function. 
