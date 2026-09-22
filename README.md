@@ -3,6 +3,8 @@ Takes in CSV of transactions,
 runs throuhg a transactions engine
 output the client account balances
 
+Run the binary: `cargo run -- transactions.csv > accounts.csv`
+
 ## Build info
 clippy requires cargo nightly to run
 `cargo +nightly clippy`
