@@ -1,4 +1,3 @@
-use rust_decimal::Decimal;
 use thiserror::Error;
 
 // Wrapped result for convienence
