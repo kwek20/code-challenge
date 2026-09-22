@@ -12,3 +12,17 @@ fmt also requires cargo nightly to run for some of the selected features
 
 Running the example requires either a passed argument for the input file, or set in the .env during development build. 
 Release build doesnt use .env
+
+## Environment variables
+Environment variables are only active in debug mode.
+We read the following:
+
+Input file is used in debug mode, when no parameter has been passed.
+Resource folder is not related to this, hence it being prepended here.
+`INPUT_FILE="resources/transactions.csv"`
+
+Resource folder is used when a parameter is passed to the binary
+`RESOURCE_FOLDER="resources"`
+
+## Logging
+Due to the requirements of the challenge outputting the result to stdout, we log informative messages to stderr. 

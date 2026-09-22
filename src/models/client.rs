@@ -17,6 +17,8 @@ fn transactions() -> Arc<RwLock<Vec<UserTransaction>>> {
 pub struct Client {
     client_id: ClientId,
     account: Account,
+    /// Transactions could be its own struct, but is likely a database in a real environment
+    /// Mkaes lookup slightly slower than it needs to be for the sake of simplicity
     #[serde(skip, default = "transactions")]
     transactions: Arc<RwLock<Vec<UserTransaction>>>,
 }
@@ -52,6 +54,9 @@ impl Client {
         }
     }
 
+    /// Process a transaction record.
+    /// Failed processing only logs the failure.
+    /// Success adds it to the clients transaction list
     pub async fn process(&mut self, record: TransactionRecord) -> Result<()> {
         let result = match &record.r#type {
             Transaction::Deposit => self.process_deposit(&record).await,
@@ -71,15 +76,17 @@ impl Client {
             self.transactions.write().await.push(record.into());
         }
 
+        // Were always good here, in a real system i imagine theres more to parse besides process
+        // Imagine locking or duplicate handling
         Ok(())
     }
 
     pub async fn process_deposit(&mut self, record: &TransactionRecord) -> Result<()> {
-        self.account.add(record.amount).await
+        self.account.add(record.amount_or_0()).await
     }
 
     pub async fn process_withdrawal(&mut self, record: &TransactionRecord) -> Result<()> {
-        if !self.account.remove(record.amount).await? {
+        if !self.account.remove(record.amount_or_0()).await? {
             Err(AccountError::WithdrawalFailed)?;
         }
 
@@ -92,7 +99,7 @@ impl Client {
 
         match disputed_tx {
             None => Err(ClientError::TransactionNotFound(dispute))?,
-            Some(t) => self.account.hold(t.amount).await,
+            Some(t) => self.account.hold(t.amount_or_0()).await,
         }
     }
 
@@ -106,7 +113,7 @@ impl Client {
 
         match disputed_tx {
             None => Err(ClientError::TransactionNotFound(dispute))?,
-            Some(t) => self.account.make_available(t.amount).await,
+            Some(t) => self.account.make_available(t.amount_or_0()).await,
         }
     }
 
@@ -120,7 +127,7 @@ impl Client {
 
         match disputed_tx {
             None => Err(ClientError::TransactionNotFound(dispute))?,
-            Some(t) => self.account.chargeback(t.amount).await?,
+            Some(t) => self.account.chargeback(t.amount_or_0()).await?,
         }
 
         // Lock the account after a chargeback
@@ -137,6 +144,9 @@ impl Client {
     /// Check if a certain transaciton id is currently disputed
     async fn is_disputed(&self, tx_id: u32) -> bool {
         let mut disputed = false;
+
+        // Vec is ordered, assuming transactions occur chronologically,
+        // A resolve will always be after a dispute, if theyre valid.
         self.transactions.read().await.iter().for_each(|t| {
             if t.tx != tx_id {
                 return;

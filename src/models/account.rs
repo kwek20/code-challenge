@@ -20,7 +20,10 @@ pub struct Account {
     total: Decimal,
     /// Whether the account is locked
     locked: bool,
+
     /// Prevent concurrent writing
+    /// Doesnt really do much here, but used to show a different way of locking
+    /// as opposed to rwlocks or mutexes.
     #[serde(skip, default = "semaphore")]
     lock: Arc<Semaphore>,
 }
@@ -58,6 +61,7 @@ impl Account {
         !self.locked
     }
 
+    /// Checks if the account balances can be modified, returns an error if not
     pub fn assert_modify(&self) -> AccountResult<()> {
         match self.may_modify() {
             true => Ok(()),
@@ -89,8 +93,8 @@ impl Account {
 
     /// Add funds to the account
     pub async fn add(&mut self, amount: Decimal) -> Result<()> {
-        let _ = self.lock.acquire().await;
         self.assert_modify()?;
+        let _ = self.lock.acquire().await;
 
         self.available += amount;
         self.total += amount;
@@ -100,9 +104,8 @@ impl Account {
 
     /// Remove funds from the account
     pub async fn remove(&mut self, amount: Decimal) -> Result<bool> {
-        let _ = self.lock.acquire().await;
-
         self.assert_modify()?;
+        let _ = self.lock.acquire().await;
 
         if self.available < amount {
             return Ok(false);
@@ -116,8 +119,8 @@ impl Account {
 
     /// Hold a certain amount of funds
     pub async fn hold(&mut self, amount: Decimal) -> Result<()> {
-        let _ = self.lock.acquire().await;
         self.assert_modify()?;
+        let _ = self.lock.acquire().await;
 
         self.available -= amount;
         self.held += amount;
@@ -127,8 +130,8 @@ impl Account {
 
     /// Make a certain amount of held funds available again
     pub async fn make_available(&mut self, amount: Decimal) -> Result<()> {
-        let _ = self.lock.acquire().await;
         self.assert_modify()?;
+        let _ = self.lock.acquire().await;
 
         self.available += amount;
         self.held -= amount;
@@ -138,8 +141,8 @@ impl Account {
 
     /// Remove an amount from the user, which were initially held back
     pub async fn chargeback(&mut self, amount: Decimal) -> Result<()> {
-        let _ = self.lock.acquire().await;
         self.assert_modify()?;
+        let _ = self.lock.acquire().await;
 
         self.total -= amount;
         self.held -= amount;

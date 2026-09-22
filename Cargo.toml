@@ -10,11 +10,10 @@ tracing = { version = "0.1", features = ["std"] }
 tracing-subscriber = { version = "0.3" }
 csv = { version = "1.4" }
 serde = { version = "1.0.215", features = ["derive"] }
-rust_decimal = { version = "1.43", feature = ["serde-float"] }
+rust_decimal = { version = "1.43" }
 
 # Only used in non-release  build
 dotenvy = { version = "0.15" }
 
 [[bin]]
 name = "code_challenge"
-src = "src/main.rs"

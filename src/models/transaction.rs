@@ -19,14 +19,32 @@ pub struct TransactionRecord {
     pub r#type: Transaction,
     pub client: u16,
     pub tx: u32,
-    pub amount: Decimal,
+    pub amount: Option<Decimal>,
+}
+
+impl TransactionRecord {
+    /// Convenience for getting a value ven though not all records have it.
+    /// In a production environment the Transaction itself would be an enum of structs.
+    /// And some would not have the field at all.
+    pub fn amount_or_0(&self) -> Decimal {
+        self.amount.unwrap_or_else(|| Decimal::new(0, 4))
+    }
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Eq)]
 pub struct UserTransaction {
     pub transaction_type: Transaction,
     pub tx: u32,
-    pub amount: Decimal,
+    pub amount: Option<Decimal>,
+}
+
+impl UserTransaction {
+    /// Convenience for getting a value ven though not all records have it.
+    /// In a production environment the Transaction itself would be an enum of structs.
+    /// And some would not have the field at all.
+    pub fn amount_or_0(&self) -> Decimal {
+        self.amount.unwrap_or_else(|| Decimal::new(0, 4))
+    }
 }
 
 impl From<TransactionRecord> for UserTransaction {

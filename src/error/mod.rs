@@ -13,8 +13,12 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub enum Error {
     #[error("Environmental Variable {0} is not set")]
     EnvVariable(String),
+
     #[error("Missing argument for {0}")]
     MissingArgument(String),
+
+    #[error("Io error: {0}")]
+    Io(String),
 
     #[error("Csv Error: {0}")]
     Csv(String),
@@ -32,5 +36,10 @@ pub enum Error {
 impl From<csv::Error> for Error {
     fn from(error: csv::Error) -> Self {
         Error::Csv(error.to_string())
+    }
+}
+impl From<std::io::Error> for Error {
+    fn from(error: std::io::Error) -> Self {
+        Error::Io(error.to_string())
     }
 }

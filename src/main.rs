@@ -5,6 +5,7 @@ async fn main() {
     #[cfg(debug_assertions)]
     let _ = dotenvy::dotenv();
 
+    // Setup loggin to error as we output to stdout
     tracing_subscriber::fmt().with_writer(std::io::stderr).init();
 
     let args: Vec<String> = std::env::args().collect();
