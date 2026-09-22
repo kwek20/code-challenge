@@ -16,14 +16,18 @@ Running the example requires either a passed argument for the input file, or set
 Release build doesnt use .env
 
 ## Environment variables
-Environment variables are only active in debug mode.
+Environment variables read from dotenvy are only active in debug mode.
+An example file is placed in `.env.example` and can be renamed to `.env`.
+
 We read the following:
 
 Input file is used in debug mode, when no parameter has been passed.
 Resource folder is not related to this, hence it being prepended here.
+
 `INPUT_FILE="resources/transactions.csv"`
 
 Resource folder is used when a parameter is passed to the binary
+
 `RESOURCE_FOLDER="resources"`
 
 ## Logging
